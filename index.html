@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>新勢力分會 · 綠燈追分儀表板</title>
+<style>
+  :root{
+    --paper:#FAF6F1; --surface:#FFFFFF; --surface-2:#F5EEEA; --surface-3:#EFE6E1;
+    --ink:#211E19; --ink-soft:#6B6459; --ink-faint:#9C948685;
+    --line:#E8DCD6; --line-soft:#F1EAE5;
+    --accent:#C8102E; --accent-ink:#A80E27; --accent-soft:#F8DFE2;
+    --green:#1F9D57; --green-bg:#E4F4EA; --green-line:#BBE3C9;
+    --amber:#C9880C; --amber-bg:#FAEECF; --amber-line:#EDD59A;
+    --red:#CE3B39; --red-bg:#F8E2E0; --red-line:#EEC3C0;
+    --grey:#8C867B; --grey-bg:#ECE8E0; --grey-line:#D9D3C7;
+    --shadow:0 1px 2px rgba(40,32,16,.05), 0 8px 24px -12px rgba(40,32,16,.18);
+    --mono:ui-monospace,"SF Mono","Cascadia Code","Roboto Mono",Consolas,monospace;
+    --cjk:"PingFang TC","PingFang SC","Microsoft JhengHei","Noto Sans TC","Hiragino Sans GB","Helvetica Neue",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#151619; --surface:#1D1F25; --surface-2:#24262E; --surface-3:#2B2E38;
+      --ink:#ECE7DD; --ink-soft:#9E978B; --ink-faint:#6b6559aa;
+      --line:#2E313A; --line-soft:#282B33;
+      --accent:#EC6A72; --accent-ink:#F3949A; --accent-soft:#3C1619;
+      --green:#48C17C; --green-bg:#16301F; --green-line:#26543A;
+      --amber:#E4B24A; --amber-bg:#332811; --amber-line:#584419;
+      --red:#E5615C; --red-bg:#361D1C; --red-line:#5A2E2C;
+      --grey:#9A948A; --grey-bg:#23252B; --grey-line:#3A3D46;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#FAF6F1; --surface:#FFFFFF; --surface-2:#F5EEEA; --surface-3:#EFE6E1;
+    --ink:#211E19; --ink-soft:#6B6459; --ink-faint:#9C948685;
+    --line:#E8DCD6; --line-soft:#F1EAE5;
+    --accent:#C8102E; --accent-ink:#A80E27; --accent-soft:#F8DFE2;
+    --green:#1F9D57; --green-bg:#E4F4EA; --green-line:#BBE3C9;
+    --amber:#C9880C; --amber-bg:#FAEECF; --amber-line:#EDD59A;
+    --red:#CE3B39; --red-bg:#F8E2E0; --red-line:#EEC3C0;
+    --grey:#8C867B; --grey-bg:#ECE8E0; --grey-line:#D9D3C7;
+  }
+  :root[data-theme="dark"]{
+    --paper:#151619; --surface:#1D1F25; --surface-2:#24262E; --surface-3:#2B2E38;
+    --ink:#ECE7DD; --ink-soft:#9E978B; --ink-faint:#6b6559aa;
+    --line:#2E313A; --line-soft:#282B33;
+    --accent:#EC6A72; --accent-ink:#F3949A; --accent-soft:#3C1619;
+    --green:#48C17C; --green-bg:#16301F; --green-line:#26543A;
+    --amber:#E4B24A; --amber-bg:#332811; --amber-line:#584419;
+    --red:#E5615C; --red-bg:#361D1C; --red-line:#5A2E2C;
+    --grey:#9A948A; --grey-bg:#23252B; --grey-line:#3A3D46;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--cjk);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1140px;margin:0 auto;padding:28px 20px 80px;}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+
+  /* Header */
+  header.top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px;}
+  .brand{display:flex;align-items:center;gap:13px;}
+  .lamps{display:flex;flex-direction:column;gap:4px;padding:7px;background:var(--surface);
+         border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow);}
+  .lamps i{width:11px;height:11px;border-radius:50%;display:block;}
+  .lamps .g{background:var(--green)} .lamps .y{background:var(--amber)} .lamps .r{background:var(--red)}
+  h1{font-size:1.32rem;font-weight:800;letter-spacing:.01em;margin:0;line-height:1.15;text-wrap:balance;}
+  .sub{color:var(--ink-soft);font-size:.83rem;margin-top:3px;letter-spacing:.02em;}
+  .meta{text-align:right;font-size:.78rem;color:var(--ink-soft);}
+  .meta b{color:var(--accent-ink);font-weight:700;}
+
+  /* Dropzone */
+  .drop{border:1.5px dashed var(--line);border-radius:16px;background:
+        linear-gradient(var(--surface),var(--surface));padding:30px 24px;text-align:center;
+        cursor:pointer;transition:border-color .15s,background .15s;box-shadow:var(--shadow);}
+  .drop:hover,.drop.over{border-color:var(--accent);background:var(--surface-2);}
+  .drop .big{font-weight:700;font-size:1.02rem;}
+  .drop .hint{color:var(--ink-soft);font-size:.82rem;margin-top:6px;line-height:1.55;}
+  .drop .pill{display:inline-block;margin-top:12px;font-size:.78rem;color:var(--accent-ink);
+              background:var(--accent-soft);border-radius:999px;padding:5px 13px;font-weight:600;}
+  .status{margin-top:12px;font-size:.83rem;}
+  .status.err{color:var(--red);font-weight:600;}
+  .status.ok{color:var(--green);font-weight:600;}
+
+  /* Toolbar */
+  .toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:22px 0 14px;}
+  .toolbar .search{flex:1;min-width:180px;position:relative;}
+  .toolbar input[type=search]{width:100%;padding:9px 13px 9px 32px;border:1px solid var(--line);
+      border-radius:10px;background:var(--surface);color:var(--ink);font-family:var(--cjk);font-size:.9rem;}
+  .toolbar .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.5;}
+  .weeks{display:flex;align-items:center;gap:7px;font-size:.83rem;color:var(--ink-soft);
+         background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 11px;}
+  .weeks input{width:44px;border:none;background:transparent;color:var(--accent-ink);font-family:var(--mono);
+        font-size:.95rem;font-weight:700;text-align:center;-moz-appearance:textfield;}
+  .weeks input::-webkit-outer-spin-button,.weeks input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .wauto{font-size:.66rem;font-weight:700;letter-spacing:.03em;padding:2px 7px;border-radius:999px;
+         background:var(--green-bg);color:var(--green);border:1px solid var(--green-line);cursor:default;white-space:nowrap;}
+  .wauto.manual{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent);cursor:pointer;}
+  .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;
+       padding:8px 14px;font-family:var(--cjk);font-size:.85rem;font-weight:600;cursor:pointer;transition:.15s;}
+  .btn:hover{border-color:var(--accent);color:var(--accent-ink);}
+
+  /* Summary tiles */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:8px;}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+        box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .tile .k{font-size:.74rem;color:var(--ink-soft);letter-spacing:.04em;font-weight:600;}
+  .tile .v{font-family:var(--mono);font-size:1.8rem;font-weight:700;line-height:1.1;margin-top:5px;font-variant-numeric:tabular-nums;}
+  .tile .u{font-size:.72rem;color:var(--ink-soft);margin-top:2px;}
+  .tile .stripe{position:absolute;left:0;top:0;bottom:0;width:4px;}
+  .tile.g .stripe{background:var(--green)} .tile.g .v{color:var(--green)}
+  .tile.y .stripe{background:var(--amber)} .tile.y .v{color:var(--amber)}
+  .tile.r .stripe{background:var(--red)} .tile.r .v{color:var(--red)}
+  .tile.a .stripe{background:var(--accent)} .tile.a .v{color:var(--accent-ink)}
+  .tile.gr .stripe{background:var(--grey)} .tile.gr .v{color:var(--grey)}
+
+  /* Table */
+  .tablecard{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+             box-shadow:var(--shadow);overflow:hidden;margin-top:16px;}
+  .scroll{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;min-width:760px;}
+  thead th{font-size:.72rem;color:var(--ink-soft);font-weight:700;letter-spacing:.03em;text-align:right;
+           padding:12px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface-2);
+           position:sticky;top:0;cursor:pointer;user-select:none;}
+  thead th.l{text-align:left;}
+  thead th .ar{opacity:.4;font-size:.7rem;}
+  thead th.act .ar{opacity:1;color:var(--accent-ink);}
+  tbody td{padding:0;border-bottom:1px solid var(--line-soft);}
+  tr.mem{cursor:pointer;transition:background .12s;}
+  tr.mem:hover{background:var(--surface-2);}
+  tr.mem.open{background:var(--surface-2);}
+  .cell{padding:11px 10px;text-align:right;white-space:nowrap;}
+  .cell.l{text-align:left;}
+  td.name .cell{display:flex;align-items:center;gap:10px;font-weight:600;}
+  .lamp{width:13px;height:13px;border-radius:50%;flex:none;box-shadow:0 0 0 3px var(--surface),0 0 0 4px var(--line-soft);}
+  .lamp.green{background:var(--green)} .lamp.yellow{background:var(--amber)}
+  .lamp.red{background:var(--red)} .lamp.grey{background:var(--grey)}
+  .catcell{min-width:56px;}
+  .catnum{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:.9rem;}
+  .catnum.full{color:var(--green)} .catnum.part{color:var(--amber)} .catnum.zero{color:var(--ink-faint)}
+  .bar{height:3px;border-radius:2px;background:var(--line);margin-top:5px;overflow:hidden;}
+  .bar > i{display:block;height:100%;border-radius:2px;}
+  .bar > i.full{background:var(--green)} .bar > i.part{background:var(--amber)} .bar > i.zero{background:transparent;}
+  .total .cell{font-family:var(--mono);font-weight:800;font-size:1.05rem;font-variant-numeric:tabular-nums;}
+  .total .cell.green{color:var(--green)} .total .cell.yellow{color:var(--amber)}
+  .total .cell.red{color:var(--red)} .total .cell.grey{color:var(--grey)}
+  .gapcol .cell{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums;}
+  .gap-need{color:var(--amber);} .gap-red{color:var(--red);} .gap-ok{color:var(--green);}
+  .chev{display:inline-block;transition:transform .18s;color:var(--ink-soft);margin-left:2px;}
+  tr.mem.open .chev{transform:rotate(90deg);color:var(--accent-ink);}
+
+  /* Detail panel */
+  tr.detail td{padding:0;background:var(--surface-2);}
+  .panel{padding:6px 18px 20px;border-bottom:1px solid var(--line);}
+  .panel .head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:10px 0 14px;}
+  .panel .head .goal{font-weight:800;font-size:1.02rem;}
+  .panel .head .goal .n{font-family:var(--mono);color:var(--red);}
+  .panel .head .goal.done .n{color:var(--green);}
+  .panel .head .note{font-size:.8rem;color:var(--ink-soft);}
+  .ladder{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:11px;}
+  .lad{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 13px;}
+  .lad .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;}
+  .lad .t .nm{font-weight:700;font-size:.9rem;}
+  .lad .t .sc{font-family:var(--mono);font-size:.8rem;color:var(--ink-soft);}
+  .lad .t .sc b{color:var(--ink);}
+  .step{display:flex;align-items:baseline;gap:8px;font-size:.83rem;padding:3px 0;}
+  .step .plus{font-family:var(--mono);font-weight:700;color:var(--green);flex:none;min-width:30px;}
+  .step .need{color:var(--ink);}
+  .step .need b{font-family:var(--mono);color:var(--accent-ink);font-weight:700;}
+  .step .pace{color:var(--ink-soft);font-size:.76rem;}
+  .lad.maxed{background:var(--green-bg);border-color:var(--green-line);}
+  .lad.maxed .t .nm{color:var(--green);}
+  .lad.maxed .done{font-size:.82rem;color:var(--green);font-weight:600;}
+  .lad.attend .keep{font-size:.82rem;color:var(--ink-soft);}
+  .flag{margin-top:14px;font-size:.8rem;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+  .flag label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;
+              border:1px solid var(--line);border-radius:8px;padding:4px 10px;}
+  .flag input{accent-color:var(--accent);}
+
+  .empty{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:.9rem;}
+  footer{margin-top:26px;font-size:.75rem;color:var(--ink-soft);line-height:1.7;}
+  footer b{color:var(--ink);font-weight:600;}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .hidden{display:none !important;}
+  a{color:var(--accent-ink);}
+  @media (max-width:560px){
+    .wrap{padding:20px 13px 60px;}
+    h1{font-size:1.15rem;}
+    .meta{text-align:left;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="lamps"><i class="g"></i><i class="y"></i><i class="r"></i></div>
+      <div>
+        <h1>新勢力分會 · 綠燈追分儀表板</h1>
+      </div>
+    </div>
+    <div class="meta">
+      綠燈門檻 <b>70 分</b><br>
+      <span id="filemeta">尚未載入資料</span>
+    </div>
+  </header>
+
+  <div id="dropzone" class="drop" tabindex="0" role="button" aria-label="上傳成績檔">
+    <div class="big">拖放 PALMS 成績報告到這裡，或點擊選擇檔案</div>
+    <div class="hint">支援 BNI 系統匯出的成績檔（.xls / XML）與 CSV。<br>資料只在你的瀏覽器中運算，不會上傳到任何伺服器；上傳後會自動記住，下次打開直接帶入。</div>
+    <div class="pill">選擇檔案</div>
+    <input id="fileinput" type="file" accept=".xls,.xml,.csv,.txt" class="hidden">
+    <div id="status" class="status"></div>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="toolbar">
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="search" type="search" placeholder="搜尋夥伴姓名…" autocomplete="off">
+      </div>
+      <div class="weeks" title="本評分週期的週數（滾動 6 個月的例會次數；新分會未滿六個月時自成立日按比例算），系統依 PALMS 出席資料自動推算，決定引薦單／一對一／來賓的級距">本期 <input id="periodWeeks" type="number" min="1" max="53" value="11"> 週<span id="weeksAuto" class="wauto">自動</span></div>
+      <div class="weeks" title="距月底剩餘週數，用於把追分數字換算成每週節奏">月底前剩 <input id="weeks" type="number" min="1" max="20" value="1"> 週</div>
+      <button class="btn" id="reload">重新上傳</button>
+      <button class="btn" id="clear">清除資料</button>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="tablecard">
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr id="headrow">
+              <th class="l" data-sort="name">夥伴 <span class="ar"></span></th>
+              <th data-sort="attend">出席 <span class="ar"></span></th>
+              <th data-sort="ref">引薦單 <span class="ar"></span></th>
+              <th data-sort="o2o">一對一 <span class="ar"></span></th>
+              <th data-sort="edu">培訓 <span class="ar"></span></th>
+              <th data-sort="vis">來賓 <span class="ar"></span></th>
+              <th data-sort="tyfcb">金額 <span class="ar"></span></th>
+              <th data-sort="total" class="act">總分 <span class="ar">▼</span></th>
+              <th data-sort="gap">距綠燈 <span class="ar"></span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>
+      <div class="legend">
+        <span><i style="background:var(--green)"></i>綠燈 ≥70</span>
+        <span><i style="background:var(--amber)"></i>黃燈 50–69</span>
+        <span><i style="background:var(--red)"></i>紅燈 30–49</span>
+        <span><i style="background:var(--grey)"></i>灰燈 &lt;30</span>
+      </div>
+      <p style="margin:10px 0 0">
+        <b>計分規則</b>（近 6 個月滾動；總分＝六項相加）<br>
+        <b>固定級距</b>　出席：0缺20 / 1缺15 / 2缺10 / 3缺↑0　·　培訓學分：≥6→15 / ≥4→10 / ≥2→5　·　引薦金額：≥200萬→15 / ≥80萬→10 / ≥40萬→5<br>
+        <b>依「本期週數」換算（下列為平均值）</b>　引薦單(內+外, 每週)：≥1.5→20 / ≥1.2→15 / ≥1.0→10 / ≥0.75→5　·　一對一(每週)：≥2→15 / ≥1→10 / ≥0.5→5　·　來賓(每四週)：≥2→15 / ≥1→10<br>
+        <b>本期週數（自動）</b>　＝ 已累計場次（全分會最高出席場次）＋ 從資料日期到當月月底還會遇到幾次週二（開會日）。例：7/21 上傳＝已計 10 ＋ 月底前 1 次週二 = 11 週。分母以「月底目標」計算，避免月中平均被高估。新勢力 2026/4 成立，未滿六個月採「按比例」計分（起點固定在成立日）；<b>十月起系統自動改吃滾動六個月</b>，分母自動封頂在六個月上限，即使 PALMS 仍匯「成立至今」全部場次也會自動縮回。基準日期取自檔名（如 <b>newforce-2026-07-21.csv</b>）；如需修改可在上方欄位手動調整，點「回自動」還原。
+      </p>
+    </footer>
+  </div>
+</div>
+
+<script id="bakedData" type="application/json"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ---------- 分會參數（新勢力專屬）----------
+  const MEETING_DAY = 2;                        // 開會日：0=日 1=一 2=二 …（新勢力＝每週二）
+  const CHAPTER_START = new Date(2026, 3, 1);   // 分會成立日 2026-04-01（月份 0-based，3=四月）
+  const ROLL_MONTHS = 6;                        // 紅綠燈滾動計分月數
+
+  // ---------- Scoring model ----------
+  // Rate-based items scale with the rolling-period week count (每週平均 = 總數 ÷ 週數).
+  // Fixed items do not. 'per' = 幾週為一個平均單位 (來賓以「每四週」計 → per:4)。
+  const ADDITIVE = [
+    {key:'ref',  label:'引薦單', unit:'張',  max:20, money:false, mode:'rate', per:1,
+      rateTiers:[[0.75,5],[1.0,10],[1.2,15],[1.5,20]], raw:m=>m.rgi+m.rgo},
+    {key:'o2o',  label:'一對一', unit:'次',  max:15, money:false, mode:'rate', per:1,
+      rateTiers:[[0.5,5],[1.0,10],[2.0,15]], raw:m=>m.o2o},
+    {key:'edu',  label:'培訓',   unit:'學分',max:15, money:false, mode:'fixed',
+      tiers:[[2,5],[4,10],[6,15]], raw:m=>m.edu},
+    {key:'vis',  label:'來賓',   unit:'位',  max:15, money:false, mode:'rate', per:4,
+      rateTiers:[[0.25,10],[0.5,15]], raw:m=>m.vis},
+    {key:'tyfcb',label:'引薦金額',unit:'萬', max:15, money:true,  mode:'fixed',
+      tiers:[[400000,5],[800000,10],[2000000,15]], raw:m=>m.tyfcb},
+  ];
+  const EPS=1e-9;
+  function tierScore(tiers, raw){ let s=0; for(const t of tiers){ if(raw>=t[0]-EPS) s=t[1]; } return s; }
+  function catScore(c, raw, weeks){
+    if(c.mode==='fixed') return tierScore(c.tiers, raw);
+    const rate = raw/weeks; let s=0;
+    for(const t of c.rateTiers){ if(rate>=t[0]-EPS) s=t[1]; }
+    return s;
+  }
+  // smallest integer count that reaches per-week rate r over `weeks`
+  function countForRate(r, weeks){ return Math.ceil(r*weeks - EPS); }
+  function attendScore(a){ if(a<=0)return 20; if(a===1)return 15; if(a===2)return 10; return 0; }
+  // Total meetings a member has been through this rolling period = 出席+缺席+遲到+病假+替代
+  // (PALMS 出席類別彼此互斥，每場例會恰落在其中一格，故相加＝該期例會總數)。
+  function meetingsOf(m){ return (m.present||0)+(m.absent||0)+(m.late||0)+(m.med||0)+(m.sub||0); }
+  // base：PALMS 裡已累計的例會場次＝取全分會出席場次最高者（資歷最完整夥伴）。
+  function computeAutoWeeks(members){
+    let mx=0; for(const m of members){ const t=meetingsOf(m); if(t>mx) mx=t; }
+    return mx>0 ? Math.round(mx) : null;
+  }
+  // 從檔名解析資料日期（YYYY-MM-DD / YYYYMMDD / YYYY.MM.DD 等），作為推算「月底前還有幾次週三」的基準日。
+  function parseDateFromName(name){
+    if(!name) return null;
+    const s=String(name);
+    // YYYY-MM-DD（如 2026-07-13）
+    let m=s.match(/(20\d{2})[-_.\/ ]?(0[1-9]|1[0-2])[-_.\/ ]?(0[1-9]|[12]\d|3[01])/);
+    if(m){ const d=new Date(+m[1], +m[2]-1, +m[3]); if(!isNaN(d.getTime())) return d; }
+    // DD-MM-YYYY（BNI 匯出預設檔名，如 13-07-2026）
+    m=s.match(/(^|[^\d])([0-3]?\d)[-_.\/ ](0?[1-9]|1[0-2])[-_.\/ ](20\d{2})([^\d]|$)/);
+    if(m){ const day=+m[2], mon=+m[3], d=new Date(+m[4], mon-1, day); if(day>=1&&day<=31&&!isNaN(d.getTime())) return d; }
+    return null;
+  }
+  function lastDayOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+  // 從 start 到 end（含兩端）之間有幾個開會日（MEETING_DAY＝週二）。用來數區間內的例會場次上限。
+  function meetingDaysBetween(start, end){
+    if(!start||!end||isNaN(start.getTime())||isNaN(end.getTime())||start>end) return 0;
+    let n=0; const cur=new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    while(cur<=end){ if(cur.getDay()===MEETING_DAY) n++; cur.setDate(cur.getDate()+1); }
+    return n;
+  }
+  // 從 refDate（不含當天）到當月最後一天，還會遇到幾次開會日（週二）。
+  function remainingMeetings(refDate){
+    if(!refDate || isNaN(refDate.getTime())) return 0;
+    const start=new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate()+1);
+    return meetingDaysBetween(start, lastDayOfMonth(refDate));
+  }
+  function periodWeeks(){
+    if(!weeksManual && AUTO_WEEKS) return AUTO_WEEKS;      // 自動偵測值優先
+    const el=document.getElementById('periodWeeks'); const v=el?parseInt(el.value,10):26; return (v&&v>0)?v:26;
+  }
+  function lightOf(m){
+    if(m.total>=70) return 'green';
+    if(m.total>=50) return 'yellow';
+    if(m.total>=30) return 'red';
+    return 'grey';   // 低於 30 分
+  }
+  const LIGHT_RANK={green:0,yellow:1,red:2,grey:3};
+
+  function scoreMember(m, weeks){
+    m.attendS = attendScore(m.absent);
+    m.cat = {};
+    let sum = m.attendS;
+    for(const c of ADDITIVE){
+      const raw=c.raw(m), sc=catScore(c,raw,weeks);
+      m.cat[c.key]={raw, score:sc, max:c.max};
+      sum += sc;
+    }
+    m.total = sum;
+    m.gap = Math.max(0, 70 - m.total);
+    return m;
+  }
+
+  // ---------- Parsing ----------
+  const HEAD = {
+    surname:'姓氏', given:'名字', present:'出席', absent:'缺席', late:'遲到', med:'病假', sub:'替代人',
+    rgi:'提供內部引薦', rgo:'提供外部引薦', rri:'收到內部引薦', rro:'收到外部引薦',
+    vis:'來賓', o2o:'一對一會面', tyfcb:'交易價值', edu:'分會教育單位'
+  };
+  const SKIP_NAMES = new Set(['總數','小計','合計','來賓','BNI','總計','Total']);
+
+  function toNum(v){ if(v==null) return 0; const n=parseFloat(String(v).replace(/[, ]/g,'')); return isNaN(n)?0:n; }
+  function clean(s){ return (s==null?'':String(s)).replace(/　/g,' ').trim(); }
+
+  function localRows(xmlDoc){
+    // gather <Row> elements (localName) in document order
+    const all=xmlDoc.getElementsByTagName('*'), rows=[];
+    for(let i=0;i<all.length;i++){ if(all[i].localName==='Row') rows.push(all[i]); }
+    return rows;
+  }
+  function rowCells(row){
+    const out=[]; let idx=0;
+    const kids=row.children;
+    for(let i=0;i<kids.length;i++){
+      const cell=kids[i]; if(cell.localName!=='Cell') continue;
+      let explicit=null;
+      for(let a=0;a<cell.attributes.length;a++){ if(cell.attributes[a].localName==='Index'){ explicit=parseInt(cell.attributes[a].value,10); break; } }
+      idx = explicit!=null ? explicit : idx+1;
+      let text='';
+      const dk=cell.children;
+      for(let j=0;j<dk.length;j++){ if(dk[j].localName==='Data'){ text=dk[j].textContent; break; } }
+      out[idx]=text;
+    }
+    return out; // 1-based sparse array
+  }
+
+  function parseSpreadsheetML(text){
+    const doc=new DOMParser().parseFromString(text,'application/xml');
+    if(doc.getElementsByTagName('parsererror').length) throw new Error('XML 解析失敗');
+    const rows=localRows(doc);
+    if(!rows.length) throw new Error('找不到資料列');
+    const grid=rows.map(rowCells);
+    return gridToMembers(grid);
+  }
+
+  function parseCSV(text){
+    text=text.replace(/^﻿/,'');
+    const lines=[]; let cur=[], field='', q=false;
+    for(let i=0;i<text.length;i++){
+      const ch=text[i];
+      if(q){ if(ch==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; } else field+=ch; }
+      else{
+        if(ch==='"') q=true;
+        else if(ch===','){ cur.push(field); field=''; }
+        else if(ch==='\n'){ cur.push(field); lines.push(cur); cur=[]; field=''; }
+        else if(ch==='\r'){}
+        else field+=ch;
+      }
+    }
+    if(field.length||cur.length){ cur.push(field); lines.push(cur); }
+    // to 1-based grid
+    const grid=lines.filter(l=>l.some(c=>clean(c)!=='')).map(l=>{ const g=[]; l.forEach((v,i)=>g[i+1]=v); return g; });
+    return gridToMembers(grid);
+  }
+
+  function gridToMembers(grid){
+    // find header row: the one containing 姓氏 & 出席
+    let hIdx=-1;
+    for(let r=0;r<grid.length;r++){
+      const row=grid[r]||[]; const joined=row.map(clean).join('');
+      if(joined.indexOf(HEAD.surname)>=0 && joined.indexOf(HEAD.present)>=0){ hIdx=r; break; }
+    }
+    if(hIdx<0) throw new Error('找不到欄位標題（需包含「姓氏」「出席」等欄位）');
+    const header=grid[hIdx]; const col={};
+    for(let c=1;c<header.length;c++){ const h=clean(header[c]); if(h) col[h]=c; }
+    for(const need of [HEAD.surname,HEAD.present,HEAD.absent,HEAD.rgi,HEAD.rgo,HEAD.o2o,HEAD.tyfcb,HEAD.edu,HEAD.vis]){
+      if(!(need in col)) throw new Error('缺少必要欄位：'+need);
+    }
+    const get=(row,name)=> name in col ? row[col[name]] : undefined;
+    const members=[];
+    for(let r=hIdx+1;r<grid.length;r++){
+      const row=grid[r]; if(!row) continue;
+      const surname=clean(get(row,HEAD.surname));
+      const given=clean(get(row,HEAD.given));
+      if(!surname) continue;
+      if(SKIP_NAMES.has(surname) && !given) continue; // 總數 / 來賓 / BNI aggregate rows
+      if(!given && SKIP_NAMES.has(surname)) continue;
+      // require at least a present value that looks like a member figure and a given name
+      if(!given) continue;
+      const m={
+        name: surname+given,
+        surname, given,
+        present:toNum(get(row,HEAD.present)),
+        absent:toNum(get(row,HEAD.absent)),
+        late:toNum(get(row,HEAD.late)),
+        med:toNum(get(row,HEAD.med)),
+        sub:toNum(get(row,HEAD.sub)),
+        rgi:toNum(get(row,HEAD.rgi)),
+        rgo:toNum(get(row,HEAD.rgo)),
+        rri:toNum(get(row,HEAD.rri)),
+        rro:toNum(get(row,HEAD.rro)),
+        vis:toNum(get(row,HEAD.vis)),
+        o2o:toNum(get(row,HEAD.o2o)),
+        tyfcb:toNum(get(row,HEAD.tyfcb)),
+        edu:toNum(get(row,HEAD.edu)),
+        newbie:false
+      };
+      members.push(scoreMember(m, periodWeeks()));
+    }
+    if(!members.length) throw new Error('沒有讀到任何夥伴資料');
+    return members;
+  }
+
+  function parseAny(text){
+    if(text.indexOf('<Workbook')>=0 || text.indexOf('urn:schemas-microsoft-com:office:spreadsheet')>=0)
+      return parseSpreadsheetML(text);
+    if(text.indexOf('<')>=0 && text.indexOf('<table')>=0) throw new Error('偵測到 HTML 表格格式，請改用系統匯出的 .xls 或另存為 CSV');
+    return parseCSV(text);
+  }
+
+  // ---------- State & render ----------
+  let MEMBERS=[];
+  let AUTO_WEEKS=null;      // 自動本期週數 = AUTO_BASE + AUTO_REMAIN（不超過滾動六個月上限）
+  let AUTO_BASE=null;       // 已累計場次（顯示用；封頂時同步縮）
+  let AUTO_REMAIN=0;        // 從資料日期到月底還有幾次週二
+  let AUTO_CAPPED=false;    // 本期週數是否被「滾動六個月上限」封頂（十月起會自動生效）
+  let AUTO_REF=null;        // 推算用的基準日期
+  let weeksManual=false;    // 使用者是否手動覆寫週數
+  let sortKey='total', sortDir=-1; // -1 desc
+  const LS_KEY='bni_gld_v1';
+  let LAST=null; // {raw, fileName, savedAt}
+  const $=s=>document.querySelector(s);
+  const tbody=$('#tbody'), tiles=$('#tiles');
+
+  function fmtMoneyWan(v){ const w=v/10000; return (w>=100? Math.round(w): Math.round(w*10)/10)+'萬'; }
+  function moneyNeed(v){ return Math.ceil(v/10000)+'萬'; }
+
+  function catClass(sc,max){ return sc>=max?'full': sc>0?'part':'zero'; }
+
+  function render(){
+    // tiles
+    const g=MEMBERS.filter(m=>lightOf(m)==='green').length;
+    const y=MEMBERS.filter(m=>lightOf(m)==='yellow').length;
+    const r=MEMBERS.filter(m=>lightOf(m)==='red').length;
+    const gr=MEMBERS.filter(m=>lightOf(m)==='grey').length;
+    const counted=MEMBERS.length;
+    const pct=n=> (counted? Math.round(n/counted*100):0)+'% ';
+    tiles.innerHTML=
+      tile('a','全員',MEMBERS.length,'位夥伴')+
+      tile('g','綠燈',g, pct(g)+'綠燈率')+
+      tile('y','黃燈',y, pct(y)+'黃燈率')+
+      tile('r','紅燈',r, pct(r)+'紅燈率')+
+      tile('gr','灰燈',gr,'低於 30 分');
+
+    // rows
+    const q=clean($('#search').value);
+    const list=MEMBERS.slice().filter(m=>!q||m.name.indexOf(q)>=0).sort(cmp);
+    const weeks=Math.max(1, parseInt($('#weeks').value,10)||1);
+    tbody.innerHTML='';
+    if(!list.length){ tbody.innerHTML='<tr><td colspan="9" class="empty">查無符合的夥伴</td></tr>'; syncHead(); return; }
+    for(const m of list){
+      const lt=lightOf(m);
+      const tr=document.createElement('tr');
+      tr.className='mem'; tr.dataset.name=m.name;
+      const gcls = lt==='green'?'gap-ok':'gap-red';
+      const gtxt = lt==='green'? '✓' : '−'+m.gap;
+      tr.innerHTML = nameCell(m,lt)+catCell(m.attendS,20)+
+        ADDITIVE.map(c=>catCell(m.cat[c.key].score,c.max)).join('')+
+        '<td class="total"><div class="cell '+lt+'">'+m.total+'</div></td>'+
+        '<td class="gapcol"><div class="cell '+gcls+'">'+gtxt+'</div></td>';
+      tbody.appendChild(tr);
+      const dr=document.createElement('tr');
+      dr.className='detail hidden';
+      dr.innerHTML='<td colspan="9">'+detailPanel(m,weeks)+'</td>';
+      tbody.appendChild(dr);
+      tr.addEventListener('click',()=>{
+        const open=tr.classList.toggle('open');
+        dr.classList.toggle('hidden',!open);
+      });
+    }
+    syncHead();
+  }
+  function frontLight(lt){ return '<td class="light"><div class="cell l"><span class="lamp '+lt+'"></span></div></td>'; }
+  function nameCell(m,lt){ return '<td class="name"><div class="cell l"><span class="lamp '+lt+'" title="'+lightLabel(lt)+'"></span><span>'+esc(m.name)+'</span><span class="chev">▸</span></div></td>'; }
+  function lightLabel(lt){ return lt==='green'?'綠燈':lt==='yellow'?'黃燈':lt==='red'?'紅燈':'灰燈（低於 30 分）'; }
+  function catCell(sc,max){
+    const cls=catClass(sc,max); const pct=Math.round(sc/max*100);
+    return '<td class="catcell"><div class="cell"><span class="catnum '+cls+'">'+sc+'</span>'+
+           '<div class="bar"><i class="'+cls+'" style="width:'+pct+'%"></i></div></div></td>';
+  }
+  function tile(cls,k,v,u){
+    return '<div class="tile '+cls+'"><span class="stripe"></span><div class="k">'+k+'</div>'+
+           '<div class="v">'+v+'</div><div class="u">'+u+'</div></div>';
+  }
+
+  function detailPanel(m,weeksLeft){
+    const pw=periodWeeks();
+    const done = m.total>=70;
+    let html='<div class="panel">';
+    html+='<div class="head"><div class="goal'+(done?' done':'')+'">'+
+          (done? '✅ 已達綠燈　<span class="n">'+m.total+'</span> / 70'
+               : '距離綠燈還差 <span class="n">'+m.gap+'</span> 分（目前 '+m.total+' / 70）')+
+          '</div>';
+    if(!done) html+='<div class="note">下方為各項可追分方式，任選達成 '+m.gap+' 分即上綠燈</div>';
+    html+='</div>';
+
+    html+='<div class="ladder">';
+    // attendance card
+    html+='<div class="lad attend"><div class="t"><span class="nm">出席</span>'+
+          '<span class="sc"><b>'+m.attendS+'</b> / 20</span></div>';
+    if(m.absent===0) html+='<div class="keep">全勤滿分，保持不缺席即可維持 20 分。</div>';
+    else html+='<div class="keep">近 6 個月缺席 '+m.absent+' 次。此項採滾動計算，維持不再缺席，隨舊紀錄滾出即可回升。</div>';
+    html+='</div>';
+
+    for(const c of ADDITIVE){
+      const cur=m.cat[c.key]; const raw=cur.raw, sc=cur.score;
+      // sub-line: current status (rate items show the current average)
+      let subTxt;
+      if(c.money) subTxt='目前 '+fmtMoneyWan(raw)+' · <b>'+sc+'</b> / '+c.max;
+      else if(c.mode==='rate'){
+        const per=c.per||1, dr=Math.round((raw/pw)*per*100)/100, lbl=per===1?'每週':('每'+per+'週');
+        subTxt='目前 '+raw+c.unit+'（'+lbl+'均 '+dr+'）· <b>'+sc+'</b> / '+c.max;
+      } else subTxt='目前 '+raw+c.unit+' · <b>'+sc+'</b> / '+c.max;
+      html+='<div class="lad'+(sc>=c.max?' maxed':'')+'"><div class="t"><span class="nm">'+c.label+'</span>'+
+            '<span class="sc">'+subTxt+'</span></div>';
+      if(sc>=c.max){ html+='<div class="done">✓ 已達滿分</div>'; }
+      else{
+        // resolve target counts (rate items scale with period weeks)
+        const tierList = c.mode==='fixed'
+          ? c.tiers.map(t=>({target:t[0], score:t[1]}))
+          : c.rateTiers.map(t=>({target:countForRate(t[0],pw), score:t[1]}));
+        for(const t of tierList){
+          if(t.score<=sc) continue;
+          const need=t.target-raw; if(need<=0) continue;
+          const needTxt=c.money? moneyNeed(need) : (need+c.unit);
+          const toTxt=c.money? fmtMoneyWan(t.target) : (t.target+c.unit);
+          const gain=t.score-sc;
+          let pace='';
+          if(!c.money){ const p=Math.ceil(need/weeksLeft); pace=' <span class="pace">（距月底約每週 '+p+c.unit+'）</span>'; }
+          html+='<div class="step"><span class="plus">+'+gain+'分</span>'+
+                '<span class="need">再補 <b>'+needTxt+'</b> 到 '+toTxt+pace+'</span></div>';
+        }
+      }
+      html+='</div>';
+    }
+    html+='</div>'; // ladder
+    html+='</div>';
+    return html;
+  }
+
+  function cmp(a,b){
+    let av,bv;
+    switch(sortKey){
+      case 'name': av=a.name; bv=b.name; return av<bv?-sortDir:av>bv?sortDir:0;
+      case 'light': av=LIGHT_RANK[lightOf(a)]; bv=LIGHT_RANK[lightOf(b)]; break;
+      case 'attend': av=a.attendS; bv=b.attendS; break;
+      case 'gap': av=a.gap; bv=b.gap; break;
+      case 'total': av=a.total; bv=b.total; break;
+      default: av=a.cat[sortKey]?a.cat[sortKey].score:0; bv=b.cat[sortKey]?b.cat[sortKey].score:0;
+    }
+    if(av<bv) return -sortDir; if(av>bv) return sortDir;
+    return b.total-a.total;
+  }
+  function syncHead(){
+    document.querySelectorAll('#headrow th').forEach(th=>{
+      const k=th.dataset.sort; const ar=th.querySelector('.ar');
+      if(k===sortKey){ th.classList.add('act'); ar.textContent= sortDir===-1?'▼':'▲'; }
+      else{ th.classList.remove('act'); ar.textContent=''; }
+    });
+  }
+
+  // ---------- Events ----------
+  document.querySelectorAll('#headrow th').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const k=th.dataset.sort;
+      if(k===sortKey) sortDir=-sortDir;
+      else{ sortKey=k; sortDir = (k==='name')? 1 : -1; }
+      render();
+    });
+  });
+  $('#search').addEventListener('input',render);
+  $('#weeks').addEventListener('input',render);
+  $('#periodWeeks').addEventListener('input',()=>{ weeksManual=true; updateWeeksBadge(); const w=periodWeeks(); MEMBERS.forEach(m=>scoreMember(m,w)); render(); persist(); });
+  $('#weeksAuto').addEventListener('click',()=>{
+    if(!weeksManual) return;                       // 已是自動則不動作
+    weeksManual=false;
+    const el=$('#periodWeeks'); if(el && AUTO_WEEKS) el.value=AUTO_WEEKS;
+    updateWeeksBadge();
+    const w=periodWeeks(); MEMBERS.forEach(m=>scoreMember(m,w)); render(); persist();
+  });
+  $('#reload').addEventListener('click',()=>{ $('#app').classList.add('hidden'); $('#dropzone').classList.remove('hidden'); setStatus(''); });
+  $('#clear').addEventListener('click',()=>{
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
+    MEMBERS=[]; LAST=null;
+    $('#app').classList.add('hidden'); $('#dropzone').classList.remove('hidden');
+    $('#filemeta').textContent='尚未載入資料'; setStatus('');
+  });
+  const dz=$('#dropzone'), fi=$('#fileinput');
+  dz.addEventListener('click',()=>fi.click());
+  dz.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fi.click(); } });
+  dz.addEventListener('dragover',e=>{ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{ e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+  fi.addEventListener('change',()=>{ if(fi.files[0]) loadFile(fi.files[0]); });
+
+  function setStatus(msg,cls){ const s=$('#status'); s.textContent=msg||''; s.className='status'+(cls?(' '+cls):''); }
+
+  function persist(){
+    if(!LAST) return;
+    try{
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        raw:LAST.raw, fileName:LAST.fileName, savedAt:LAST.savedAt,
+        periodWeeks: periodWeeks(),
+        weeksManual: weeksManual,
+        newbies: MEMBERS.filter(m=>m.newbie).map(m=>m.name)
+      }));
+    }catch(e){/* storage unavailable (private mode / sandbox) — degrade quietly */}
+  }
+
+  function showData(text, fileName, savedAt, opts){
+    opts=opts||{};
+    MEMBERS=parseAny(text);                    // 先解析（暫以預設週數計分）
+    const rawBase=computeAutoWeeks(MEMBERS);   // PALMS 已累計場次（成立至今全分會最高出席場次）
+    // 基準日期：檔名日期優先 → 上傳(commit)日期 → 存檔時間，用來推「月底前還有幾次週二」
+    AUTO_REF = parseDateFromName(fileName) || (opts.reportDate?new Date(opts.reportDate):null) || (savedAt?new Date(savedAt):new Date());
+    if(rawBase!=null){
+      AUTO_REMAIN = remainingMeetings(AUTO_REF);              // 資料日到當月月底還有幾次週二
+      // 評分區間＝滾動六個月；新分會未滿六個月時，起點自動固定在成立日。
+      //   起點 = 較晚者( 成立日 4/1 , 當月月底往前推六個月 )
+      //   → 十月以前：起點取成立日（按比例）；十月起：往前推六個月已超過 4/1，自動改吃滾動六個月。
+      const monthEnd=lastDayOfMonth(AUTO_REF);
+      const sixMoBeforeEnd=new Date(monthEnd.getFullYear(), monthEnd.getMonth()-ROLL_MONTHS, monthEnd.getDate());
+      const periodStart = (CHAPTER_START>sixMoBeforeEnd) ? CHAPTER_START : sixMoBeforeEnd;
+      const cap=meetingDaysBetween(periodStart, monthEnd);   // 評分區間到月底、日曆上的開會日上限
+      const projected=rawBase+AUTO_REMAIN;                   // base ＋ 月底前剩餘＝到月底的目標場次
+      AUTO_CAPPED = projected>cap;                           // 超過六個月上限就封頂（防對方 PALMS 匯成成立至今）
+      AUTO_WEEKS = Math.min(projected, cap);                 // 分母＝到月底目標，但不超過滾動六個月上限
+      AUTO_BASE = Math.max(0, AUTO_WEEKS - AUTO_REMAIN);     // 顯示用：扣掉未來剩餘＝已計場次
+    } else {
+      AUTO_BASE=null; AUTO_REMAIN=0; AUTO_WEEKS=null; AUTO_CAPPED=false;
+    }
+    // 週數模式：僅在存檔/烤入資料明確標記為手動覆寫時，才沿用手動值；否則一律自動
+    weeksManual = !!(opts.weeksManual && opts.periodWeeks);
+    const el=$('#periodWeeks');
+    if(el) el.value = weeksManual ? opts.periodWeeks : (AUTO_WEEKS || parseInt(el.value,10) || 26);
+    const wl=$('#weeks'); if(wl && AUTO_REMAIN>0) wl.value=AUTO_REMAIN;   // 月底前剩餘週數同步為「還有幾次週三」
+    const w=periodWeeks();
+    MEMBERS.forEach(m=>scoreMember(m,w));       // 以生效週數重新計分全員
+    if(opts.newbies && opts.newbies.length){
+      const set=new Set(opts.newbies);
+      MEMBERS.forEach(m=>{ if(set.has(m.name)) m.newbie=true; });
+    }
+    LAST={raw:text, fileName:fileName||'', savedAt:savedAt||Date.now()};
+    setStatus('');
+    $('#dropzone').classList.add('hidden');
+    $('#app').classList.remove('hidden');
+    sortKey='total'; sortDir=-1;
+    updateWeeksBadge();
+    render();
+    updateMeta(opts);
+  }
+
+  function updateWeeksBadge(){
+    const b=$('#weeksAuto'); if(!b) return;
+    if(weeksManual){
+      b.textContent='手動 · 回自動'; b.classList.add('manual');
+      b.title='目前為手動指定週數，點此改回依 PALMS 出席資料自動推算'+(AUTO_WEEKS?('（自動值 '+AUTO_WEEKS+' 週）'):'');
+    }else{
+      b.textContent = AUTO_WEEKS? (AUTO_CAPPED?'滾動6月':'自動') : '預設'; b.classList.remove('manual');
+      if(AUTO_WEEKS){
+        const refTxt = (AUTO_REF && !isNaN(AUTO_REF.getTime())) ? (AUTO_REF.getMonth()+1)+'/'+AUTO_REF.getDate() : '資料日';
+        b.title = AUTO_CAPPED
+          ? '本期 '+AUTO_WEEKS+' 週：已達滾動六個月上限（自動封頂）。如 PALMS 仍匯「成立至今」全部場次，系統已自動縮回六個月區間。'
+          : '自動推算本期 '+AUTO_WEEKS+' 週 ＝ 已累計 '+AUTO_BASE+' 週 ＋ 從 '+refTxt+' 到月底還有 '+AUTO_REMAIN+' 次週二';
+      } else {
+        b.title = '無法從資料推算，暫用預設值，可手動調整';
+      }
+    }
+  }
+
+  function updateMeta(opts){
+    opts=opts||{};
+    let when='';
+    if(LAST && LAST.savedAt){
+      try{ when=new Date(LAST.savedAt).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){}
+    }
+    const w=periodWeeks();
+    let wtag='本期 <b>'+w+'</b> 週';
+    if(weeksManual) wtag+='（手動）';
+    else if(AUTO_CAPPED) wtag+='（滾動六個月上限）';
+    else if(AUTO_WEEKS && AUTO_REMAIN>0) wtag+='（自動：已計 '+AUTO_BASE+' ＋ 月底前 '+AUTO_REMAIN+' 次週二）';
+    else wtag+='（自動）';
+    let s;
+    if(opts.github) s='線上最新 · <b>'+MEMBERS.length+'</b> 位夥伴 · '+wtag+(LAST&&LAST.fileName?' · '+esc(LAST.fileName):'');
+    else if(opts.baked) s='共 <b>'+MEMBERS.length+'</b> 位夥伴 · '+wtag+(when?' · 更新 '+when:'');
+    else if(opts.restored) s='沿用上次資料 <b>'+MEMBERS.length+'</b> 位 · '+wtag+(LAST&&LAST.fileName?' · '+esc(LAST.fileName):'')+(when?' · '+when:'');
+    else s='已載入 <b>'+MEMBERS.length+'</b> 位夥伴 · '+wtag+(LAST&&LAST.fileName?' · '+esc(LAST.fileName):'');
+    $('#filemeta').innerHTML=s;
+  }
+
+  function getBaked(){
+    const el=document.getElementById('bakedData'); if(!el) return null;
+    const t=(el.textContent||'').trim(); if(!t) return null;
+    try{ const o=JSON.parse(t); return (o&&o.raw)?o:null; }catch(e){ return null; }
+  }
+
+  function loadFile(file){
+    setStatus('讀取中…');
+    const rd=new FileReader();
+    rd.onload=()=>{
+      try{ showData(rd.result, file.name, Date.now(), {}); persist(); }
+      catch(err){ setStatus('讀取失敗：'+err.message,'err'); }
+    };
+    rd.onerror=()=>setStatus('無法讀取檔案','err');
+    rd.readAsText(file,'UTF-8');
+  }
+
+  function restoreSaved(){
+    let s=null;
+    try{ s=JSON.parse(localStorage.getItem(LS_KEY)||'null'); }catch(e){ s=null; }
+    if(s && s.raw){
+      try{ showData(s.raw, s.fileName, s.savedAt, {periodWeeks:s.periodWeeks, weeksManual:s.weeksManual, newbies:s.newbies, restored:true}); }
+      catch(e){ /* corrupt / format changed — start fresh */ }
+    }
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // ---------- 線上資料來源（GitHub）----------
+  // 網頁開啟時自動抓取 repo 的 data/ 資料夾裡「最新一份」PALMS 檔並顯示。
+  // 管理者每週在 GitHub 網站把新檔上傳到 data/ 即可，夥伴重整就看到最新。
+  const GH_DATA = { owner:'geniusjohn0502', repo:'newforce-greenlight', branch:'main', dir:'data' };
+  async function fetchGithubLatest(){
+    if(!GH_DATA.owner || !GH_DATA.repo) return false;
+    const api='https://api.github.com/repos/'+GH_DATA.owner+'/'+GH_DATA.repo+'/contents/'+GH_DATA.dir+'?ref='+GH_DATA.branch;
+    const res=await fetch(api,{headers:{'Accept':'application/vnd.github+json'}});
+    if(!res.ok) return false;
+    const items=await res.json();
+    if(!Array.isArray(items)) return false;
+    const files=items.filter(it=>it.type==='file' && /\.(xls|xml|csv|txt)$/i.test(it.name));
+    if(!files.length) return false;
+    // 取「最新」：以檔名倒序（建議檔名含日期，如 2026-07-13…，會自動抓最新那份）
+    files.sort((a,b)=> a.name<b.name?1:a.name>b.name?-1:0);
+    const pick=files[0];
+    // 基準日期：檔名沒有日期時，退回抓該檔的 commit 日期（固定、不隨開頁時間變動）
+    let reportDate=null;
+    if(!parseDateFromName(pick.name)){
+      try{
+        const cRes=await fetch('https://api.github.com/repos/'+GH_DATA.owner+'/'+GH_DATA.repo+'/commits?path='+encodeURIComponent(GH_DATA.dir+'/'+pick.name)+'&sha='+GH_DATA.branch+'&per_page=1',{headers:{'Accept':'application/vnd.github+json'}});
+        if(cRes.ok){ const cs=await cRes.json(); if(Array.isArray(cs)&&cs[0]&&cs[0].commit) reportDate=cs[0].commit.committer.date; }
+      }catch(e){}
+    }
+    const rawUrl=pick.download_url || ('https://raw.githubusercontent.com/'+GH_DATA.owner+'/'+GH_DATA.repo+'/'+GH_DATA.branch+'/'+GH_DATA.dir+'/'+encodeURIComponent(pick.name));
+    const draw=await fetch(rawUrl);
+    if(!draw.ok) return false;
+    const text=await draw.text();
+    showData(text, pick.name, Date.now(), {github:true, reportDate:reportDate});
+    return true;
+  }
+
+  (async function init(){
+    // 1) 線上最新資料（GitHub data/）優先，讓夥伴永遠看到已發布的最新一週
+    try{ if(await fetchGithubLatest()) return; }catch(e){ /* 離線／額度用盡等 → 往下退 */ }
+    // 2) 烤入頁面的資料（若有）
+    const baked=getBaked();
+    if(baked){
+      try{ showData(baked.raw, baked.fileName, baked.savedAt, {periodWeeks:baked.periodWeeks, weeksManual:baked.weeksManual, newbies:baked.newbies, baked:true}); return; }
+      catch(e){ /* fall through to local */ }
+    }
+    // 3) 這台瀏覽器上次手動上傳的資料
+    restoreSaved();
+  })();
+})();
+</script>
+</body>
+</html>
